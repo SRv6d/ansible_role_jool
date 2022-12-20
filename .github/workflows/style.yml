@@ -1,0 +1,16 @@
+---
+name: Code Style
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+jobs:
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: lint YAML
+        uses: ibiqlik/action-yamllint@v3
+      - name: lint Ansible
+        uses: ansible-community/ansible-lint-action@v6

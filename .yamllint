@@ -1,0 +1,14 @@
+---
+extends: default
+rules:
+  truthy:
+    check-keys: false
+  indentation:
+    spaces: 2
+    check-multi-line-strings: true
+  quoted-strings:
+    quote-type: double
+    required: only-when-needed
+  line-length:
+    max: 88
+ignore-from-file: .gitignore

@@ -1,0 +1,33 @@
+---
+- name: Install Jool tools and kernel modules
+  ansible.builtin.apt:
+    name:
+      - jool-dkms
+      - jool-tools
+
+- name: Create Jool configuration directory
+  ansible.builtin.file:
+    path: "{{ _jool_configuration_directory }}"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- name: Push main Jool Systemd service
+  ansible.builtin.template:
+    src: etc/systemd/system/jool.service.j2
+    dest: "{{ _jool_systemd_service_main_file_path }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Systemd daemon-reload
+    - Jool service enable
+    - Jool service start
+
+- name: Mask and disable 'jool_siit' service shipped with package
+  ansible.builtin.systemd:
+    name: jool_siit.service
+    state: stopped
+    enabled: false
+    masked: true

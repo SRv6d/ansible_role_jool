@@ -1,0 +1,28 @@
+---
+name: Molecule Tests
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: 0 12 */2 * *
+jobs:
+  molecule-test:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [focal, jammy]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - run: pip3 install -r .github/molecule-requirements.txt
+      - name: run molecule tests
+        run: molecule test
+        env:
+          PY_COLORS: "1"
+          ANSIBLE_FORCE_COLOR: "1"
+          UBUNTU_RELEASE: ${{ matrix.release }}

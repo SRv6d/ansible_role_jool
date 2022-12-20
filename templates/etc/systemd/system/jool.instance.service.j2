@@ -1,0 +1,39 @@
+[Unit]
+Description=Jool Instance "{{ instance_name }}"
+ConditionPathExists=/etc/jool/{{ instance_name }}.conf
+PartOf=jool.service
+StopWhenUnneeded=true
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/bin/sh -c "/sbin/modprobe {{ instance_kernel_module }}"
+ExecStart=/bin/sh -c "/usr/bin/{{ instance_kernel_module }} file handle /etc/jool/{{ instance_name }}.conf"
+ExecReload=/bin/sh -c "/usr/bin/{{ instance_kernel_module }} file handle /etc/jool/{{ instance_name }}.conf"
+ExecStop=/bin/sh -c "/usr/bin/{{ instance_kernel_module }} -f /etc/jool/{{ instance_name }}.conf instance remove"
+
+# Do not modprobe -r; some other instance could be running.
+
+# -- Security Section --
+# Long story short: All the jool clients need is read access on the config
+# files, and the Netlink socket to kernelspace.
+# The ExecStartPre above also needs to be able to modify kernel modules.
+# Everything else should probably be blocked.
+
+CapabilityBoundingSet=CAP_SYS_MODULE CAP_NET_ADMIN
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+InaccessiblePaths=/tmp /dev
+ProtectKernelTunables=yes
+ProtectKernelModules=no
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_NETLINK
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

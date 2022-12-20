@@ -1,0 +1,17 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Install basic dependencies in Debian based containers
+      ansible.builtin.apt:
+        name:
+          - sudo
+          - iproute2
+          - procps
+          - rsync
+          - linux-headers-{{ ansible_kernel }}
+        state: present
+      when: ansible_os_family == "Debian"
+    - name: Include srv6d.jool
+      ansible.builtin.include_role:
+        name: srv6d.jool

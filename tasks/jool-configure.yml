@@ -1,0 +1,80 @@
+---
+- name: Create local temporary Jool instance configuration directory
+  ansible.builtin.tempfile:
+    state: directory
+  changed_when: false
+  register: __tmp_instance_configuration_dir
+  delegate_to: localhost
+
+- name: Render local Jool instance configuration directory
+  ansible.builtin.copy:
+    content: "{{ jool_config | from_yaml | to_nice_json(indent=2) }}"
+    dest: "{{ __tmp_instance_configuration_dir.path }}/{{ item.instance }}.conf"
+    mode: 0644
+  changed_when: false
+  loop: "{{ jool_instances }}"
+  loop_control:
+    label: "{{ item.instance }}"
+  vars:
+    jool_config: "{% set removed = item.pop('type') %}{{ item }}"
+  delegate_to: localhost
+
+- name: Push Jool Systemd instance services
+  ansible.builtin.template:
+    src: etc/systemd/system/jool.instance.service.j2
+    dest: /etc/systemd/system/jool.{{ item.instance }}.service
+    owner: root
+    group: root
+    mode: 0644
+  loop: "{{ jool_instances }}"
+  loop_control:
+    label: "{{ item.instance }}"
+  notify:
+    - Systemd daemon-reload
+    - Jool instance services start
+  vars:
+    instance_name: "{{ item.instance }}"
+    instance_kernel_module: "{{ _jool_kernel_module[item.type] }}"
+
+- name: Find outdated Jool Systemd instance services
+  ansible.builtin.find:
+    paths: /etc/systemd/system
+    patterns: jool.*.service
+    contains: Jool Instance
+    file_type: any
+    excludes: "{{ _jool_instance_services }}"
+  register: __jool_stale_instance_services
+
+- name: Remove outdated Jool Systemd instance services
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ __jool_stale_instance_services.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+- name: Stop outdated Jool Systemd services
+  ansible.builtin.systemd:
+    name: "{{ item | basename }}"
+    state: stopped
+  loop: "{{ __jool_stale_instance_services.files | map(attribute='path') }}"
+  loop_control:
+    label: "{{ item | basename }}"
+
+- name: Push Jool instance configuration directory
+  ansible.builtin.synchronize:
+    src: "{{ __tmp_instance_configuration_dir.path }}/"
+    dest: "{{ _jool_configuration_directory }}"
+    archive: false
+    dirs: true
+    checksum: true
+    delete: true
+  become: true
+  become_user: root
+
+- name: Remove local temporary Jool instance configuration directory
+  ansible.builtin.file:
+    path: "{{ __tmp_instance_configuration_dir.path }}"
+    state: absent
+  changed_when: false
+  delegate_to: localhost
