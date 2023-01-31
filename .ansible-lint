@@ -1,3 +1,5 @@
 ---
+skip_list:
+  - galaxy[no-changelog]
 exclude_paths:
   - .github/
