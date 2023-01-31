@@ -62,7 +62,7 @@
     label: "{{ item | basename }}"
 
 - name: Push Jool instance configuration directory
-  ansible.builtin.synchronize:
+  ansible.posix.synchronize:
     src: "{{ __tmp_instance_configuration_dir.path }}/"
     dest: "{{ _jool_configuration_directory }}"
     archive: false
