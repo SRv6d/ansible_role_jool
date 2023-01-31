@@ -13,4 +13,4 @@ jobs:
       - name: lint YAML
         uses: ibiqlik/action-yamllint@v3
       - name: lint Ansible
-        uses: ansible-community/ansible-lint-action@v6
+        uses: ansible-community/ansible-lint-action@v6.11.0
