@@ -6,7 +6,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: 0 12 */2 * *
+    - cron: 30 20 */2 * *
 jobs:
   molecule-test:
     runs-on: ubuntu-20.04
