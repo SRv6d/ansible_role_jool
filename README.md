@@ -53,4 +53,4 @@ The role is tested on the following, but may also work with other debian based d
 
 ## Author Information
 
-Marvin Vogt (git@srv6d.space)
+Marvin Vogt (m@rvinvogt.com)
